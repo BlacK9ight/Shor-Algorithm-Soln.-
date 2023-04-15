@@ -1,0 +1,708 @@
+Error Correction with the Shor Code
+Introduction
+This project extends your work in Week 21 to implement, simulate, and analyze the first ever error correction code proposed that can handle any single qubit errors (bit-flips, phase-flips, or others) using the Shor code (Sho95).
+
+
+
+Description
+The Shor code is a natural extension of the Bit- and Phase- flip codes that avoid syndrome measurements where:
+
+A bit-flip error means |0\rangle∣0⟩ unintentionally turning into |1\rangle∣1⟩ or vice versa.
+A phase-flip error means |+\rangle∣+⟩ unintentionally turning into |-\rangle∣−⟩ or vice versa.
+This code can be viewed as two levels of quantum error correction where:
+
+The logical qubits are first encoded into a 3-qubit phase-flip code.
+Each of the resulting physical qubits are encoded into a 3-qubit bit-flip code.
+
+
+Key Questions
+In this project, you will answer the following questions:
+
+How does using the Shor code compare to using no error correction? Are there any trends you notice?
+
+When using the Shor code, how does the average fidelity change with increasing probability of errors? Why is this?
+
+Are there any unexpected patterns in the average fidelity? Why do you think they might be happening if so?
+
+
+
+Structure
+This project is broken into 3 parts:
+
+Part 1: Defining the Components
+
+Part 1.1: The Phase-Flip Code
+
+Part 1.2: The Bit-Flip Code
+
+Part 2: Implementing the Shor Code
+
+Part 3: Analyzing the Shor Code
+
+Wrapping Up
+
+
+
+Resources
+Week 21 Lab Solutions (Bit-Flip Code and Noise Models)
+Week 21 Homework Solutions (Phase-Flip Code)
+Qiskit's circuit.compose(...) function documentation
+Qiskit's Statevector(...) documentation
+Quantum Error Correction for Beginners
+Scheme for reducing decoherence in quantum computer memory: The original paper from by Shor proposing this code (behind a paywall)
+Part 0: Importing from Qiskit
+Run the code below to import everything needed for this lab.
+
+In [ ]:
+#!pip install qiskit
+
+from qiskit import QuantumCircuit, Aer, transpile, assemble, execute, Aer, IBMQ
+from qiskit.visualization import plot_histogram
+from qiskit.circuit.random import random_circuit
+from qiskit.quantum_info import Statevector, partial_trace, state_fidelity
+
+from random import random
+import matplotlib.pyplot as plt
+
+import warnings
+warnings.filterwarnings('ignore')
+
+#provider = IBMQ.load_account()
+
+print("Libraries Imported Successfully!")
+Part 1: Defining the Components
+In this section, we will define the key components of the Shor code through these parts:
+
+Part 1.1: The 3-qubit phase-flip code.
+
+Part 1.2: The 3-qubit bit-flip code.
+
+Part 1.1: The Phase-Flip Code
+In this section, we will define two circuits pertaining to the phase-flip code:
+
+phaseflip_encode: A 3-qubit phase-flip logical to physical encoding.
+phaseflip_correct: A 3-qubit phase-flip physical error detection and correction circuit.
+Exercise #1
+Create the phaseflip_encode circuit that encodes a logical state into a 3-qubit phase-flip code. Specifically,
+
+Initialize a circuit with 3 qubits.
+
+Entangle the state of q_0q 
+0
+​
+  with the other qubits.
+
+Put all qubits in equal superpositions to correct |+\rangle∣+⟩ and |-\rangle∣−⟩ states from switching instead of |0\rangle∣0⟩ and |1\rangle∣1⟩.
+
+1. Initialize a circuit with 3 qubits.
+The first qubit, q_0q 
+0
+​
+ , will be the qubit we are correcting. The second and third qubits, q_1q 
+1
+​
+  and q_2q 
+2
+​
+ , will be ancillary qubits used for correcting the first qubit.
+
+In [ ]:
+phaseflip_encode = # COMPLETE THIS LINE
+2. Entangle the state of q_0q 
+0
+​
+  with the other two qubits.
+This can be accomplished by applying two CNOT gates controlled by q_0q 
+0
+​
+  and targeting the other qubits, q_1q 
+1
+​
+  and q_2q 
+2
+​
+ .
+
+In [ ]:
+phaseflip_encode.# COMPLETE THIS LINE
+phaseflip_encode.# COMPLETE THIS LINE
+3. Put all qubits in equal superpositions to correct |+\rangle∣+⟩ and |-\rangle∣−⟩ states from flipping instead of |0\rangle∣0⟩ and |1\rangle∣1⟩.
+In [ ]:
+phaseflip_encode.# COMPLETE THIS LINE
+phaseflip_encode.# COMPLETE THIS LINE
+phaseflip_circuit.# COMPLETE THIS LINE
+
+phaseflip_encode.draw()
+Exercise #2
+Create the phaseflip_correct circuit that detects and corrects errors in a 3-qubit phase-flip code. Specifically,
+
+Initialize a circuit with 3 qubits.
+
+Detect any errors by checking that the phases of the 3 qubits match using H gates and CNOTs.
+
+Correct any errors using a Toffoli gate.
+
+1. Initialize a circuit with 3 qubits.
+The first qubit, q_0q 
+0
+​
+ , will be the qubit we are correcting. The second and third qubits, q_1q 
+1
+​
+  and q_2q 
+2
+​
+ , will be ancillary qubits used for correcting the first qubit.
+
+In [ ]:
+phaseflip_correct = # COMPLETE THIS LINE
+2. Detect any errors by checking that the phases of the 3 qubits match using H gates and CNOTs.
+In [ ]:
+# COMPLETE THIS CODE
+
+phaseflip_correct.draw()
+3. Correct any errors using a Toffoli gate.
+In [ ]:
+# COMPLETE THIS CODE
+
+phaseflip_correct.draw()
+Exercise #3
+Simulate the full phase-flip code for the |+\rangle∣+⟩ state without errors as follows:
+
+Combine the encoding and correcting circuits using .compose(...).
+Compare the initial and final statevector.
+1. Combine the encoding and correcting circuits using .compose(...).
+Qiskit's .compose(...) function allows us to combine different circuits in a number of ways. We will use this throughout the notebook to build up a full Shor code, but since this is the first time you are seeing it we have provided it for you.
+
+Run the code below to compose the encoding and correcting circuits.
+
+In [ ]:
+full_code = QuantumCircuit(3, 1)
+
+#==========
+# ENCODING
+#==========
+# Prepare the initial state and save its statevector
+full_code.h(0)
+
+initial_state = Statevector.from_instruction(full_code)
+initial_state = partial_trace(initial_state, [1, 2]).to_statevector()
+
+full_code = full_code.compose(phaseflip_encode, qubits = [0, 1, 2])
+full_code.barrier()
+
+
+#==========
+# ERRORS
+#==========
+# NONE IN THIS CASE
+
+full_code.barrier()
+
+
+#==========================
+# DETECTION AND CORRECTION
+#==========================
+
+full_code = full_code.compose(phaseflip_correct, qubits = [0, 1, 2])
+
+# Save the final statevector for comparison to the initial one
+final_state = Statevector.from_instruction(full_code)
+final_state = partial_trace(final_state, [1, 2]).to_statevector()
+
+full_code.draw()
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #4
+Simulate the full phase-flip code for the |-\rangle∣−⟩ state without errors as follows:
+
+Combine the encoding and correcting circuits using .compose(...).
+Compare the initial and final statevector.
+1. Combine the encoding and correcting circuits using .compose(...).
+In [ ]:
+# COMPLETE THIS CODE
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #5
+Simulate the full phase-flip code for the |-\rangle∣−⟩ state with a phase-flip error on qubit 0 as follows:
+
+Combine the encoding circuit, the phase-flip error, and the correcting circuit using .compose(...).
+Compare the initial and final statevector.
+NOTE: This is identical to Exercise #4, except a phase-flip error is introduced. Consult previous work or other resources to determine how to implement a phase-flip error in a quantum circuit.
+
+1. Combine the encoding circuit, the phase-flip error, and the correcting circuit using .compose(...).
+In [ ]:
+# COMPLETE THIS CODE
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #6
+Simulate the full phase-flip code for the |-\rangle∣−⟩ state with a bit-flip error on qubit 0 as follows:
+
+Combine the encoding circuit, the bit-flip error, and the correcting circuit using .compose(...).
+Compare the initial and final statevector.
+NOTE: This is identical to Exercise #4, except a phase-flip error is introduced. Consult previous work or other resources to determine how to implement a phase-flip error in a quantum circuit.
+
+1. Combine the encoding circuit, the bit-flip error, and the correcting circuit using .compose(...).
+In [ ]:
+# COMPLETE THIS CODE
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Part 1.2: The Bit-Flip Code
+In this section, we will define two circuits pertaining to the bit-flip code:
+
+bitflip_encode: A 3-qubit bit-flip logical to physical encoding.
+bitflip_correct: A 3-qubit bit-flip physical error detection and correction circuit.
+Exercise #1
+Create the bitflip_encode circuit that encodes a logical state into a 3-qubit bitflip code. Specifically,
+
+Initialize a circuit with 3 qubits.
+
+Entangle the state of q_0q 
+0
+​
+  with the other qubits.
+
+1. Initialize a circuit with 3 qubits.
+The first qubit, q_0q 
+0
+​
+ , will be the qubit we are correcting. The second and third qubits, q_1q 
+1
+​
+  and q_2q 
+2
+​
+ , will be ancillary qubits used for correcting the first qubit.
+
+In [ ]:
+bitflip_encode = # COMPLETE THIS LINE
+2. Entangle the state of q_0q 
+0
+​
+  with the other two qubits.
+This can be accomplished by applying two CNOT gates controlled by q_0q 
+0
+​
+  and targeting the other qubits, q_1q 
+1
+​
+  and q_2q 
+2
+​
+ .
+
+In [ ]:
+bitflip_encode.# COMPLETE THIS LINE
+bitflip_encode.# COMPLETE THIS LINE
+Exercise #2
+Create the bitflip_correct circuit that detects and corrects errors in a 3-qubit bit-flip code. Specifically,
+
+Initialize a circuit with 3 qubits.
+
+Detect any errors by checking that the parity of the 3 qubits match using CNOTs.
+
+Correct any errors using a Toffoli gate.
+
+1. Initialize a circuit with 3 qubits.
+The first qubit, q_0q 
+0
+​
+ , will be the qubit we are correcting. The second and third qubits, q_1q 
+1
+​
+  and q_2q 
+2
+​
+ , will be ancillary qubits used for correcting the first qubit.
+
+In [ ]:
+bitflip_correct = # COMPLETE THIS LINE
+2. Detect any errors by checking that the parity of the 3 qubits match using CNOTs.
+In [ ]:
+# COMPLETE THIS CODE
+
+bitflip_correct.draw()
+3. Correct any errors using a Toffoli gate.
+In [ ]:
+# COMPLETE THIS CODE
+
+bitflip_correct.draw()
+Exercise #3
+Simulate the full bit-flip code for the |0\rangle∣0⟩ state without errors as follows:
+
+Combine the encoding and correcting circuits using .compose(...).
+Compare the initial and final statevector.
+1. Combine the encoding and correcting circuits using .compose(...).
+Adapt this step from the phase-flip code developed in Part 1.1 for the bit-flip code we have developed just above.
+
+NOTE: This is almost entirely just a changle of variable names.
+
+In [ ]:
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #4
+Simulate the full bit-flip code for the |-\rangle∣−⟩ state with a bit-flip error on qubit 0 as follows:
+
+Combine the encoding circuit, the bit-flip error, and the correcting circuit using .compose(...).
+Compare the initial and final statevector.
+1. Combine the encoding circuit, the bit-flip error, and the correcting circuit using .compose(...).
+In [ ]:
+# COMPLETE THIS CODE
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #5
+Simulate the full bit-flip code for the |-\rangle∣−⟩ state with a phase-flip error on qubit 0 as follows:
+
+Combine the encoding circuit, the phase-flip error, and the correcting circuit using .compose(...).
+Compare the initial and final statevector.
+1. Combine the encoding circuit, the phase-flip error, and the correcting circuit using .compose(...).
+In [ ]:
+# COMPLETE THIS CODE
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Part 2: Implementing the Shor Code
+In this section, we will build on the work from the last section to implement Shor's code in full.
+
+Exercise #1
+Initialize a circuit with the correct number of qubits. It is up to you to determine the correct number based on the description of the code below and any other resources at your disposal.
+
+
+
+This code can be viewed as two levels of quantum error correction where:
+
+The logical qubits are first encoded into a 3-qubit phase-flip code.
+Each of the resulting physical qubits are encoded into a 3-qubit bit-flip code.
+In [ ]:
+shor_encode = QuantumCircuit(#COMPLETE THIS LINE
+Exercise #2
+Complete the code below using every 3rd qubit for the phase-flip code.
+
+In [ ]:
+shor_encode = shor_encode.compose(phaseflip_encode, qubits = [# COMPLETE THIS LINE
+Exercise #3
+Complete the code below to encode each of the phase-flip code qubits using their own bit-flip code.
+
+In [ ]:
+shor_encode = shor_encode.compose(bitflip_encode, qubits = # COMPLETE THIS CODE
+Exercise #4
+Now, initialize the correcting circuit with the correct number of qubits.
+
+In [ ]:
+shor_correct = QuantumCircuit(# COMPLETE THIS LINE
+Exercise #5
+For the same qubits that you encoded in Exercise #3, correct any bit-flips.
+
+In [ ]:
+shor_correct = shor_correct.compose(# COMPLETE THIS CODE
+Exercise #6
+For the same qubits that you encoded in Exercise #2, correct any phase-flips.
+
+In [ ]:
+shor_correct = # COMPLETE THIS LINE
+Exercise #7
+Verify your implementation is correct by running the code below.
+
+1. Combine the encoding and correcting circuits using .compose(...).
+In [ ]:
+full_code = QuantumCircuit(9)
+
+#==========
+# ENCODING
+#==========
+# Prepare the initial state and save its statevector
+# Prepare in the |0> state
+
+initial_state = Statevector.from_instruction(full_code)
+initial_state = partial_trace(initial_state, [1, 2, 3, 4, 5, 6, 7, 8]).to_statevector()
+
+full_code = full_code.compose(shor_encode, qubits = [0, 1, 2, 3, 4, 5, 6, 7, 8])
+full_code.barrier()
+
+
+#==========
+# ERRORS
+#==========
+full_code.x(0)
+full_code.z(0)
+
+full_code.barrier()
+
+
+#==========================
+# DETECTION AND CORRECTION
+#==========================
+
+full_code = full_code.compose(shor_correct, qubits = [0, 1, 2, 3, 4, 5, 6, 7, 8])
+
+# Save the final statevector for comparison to the initial one
+final_state = Statevector.from_instruction(full_code)
+final_state = partial_trace(final_state, [1, 2, 3, 4, 5, 6, 7, 8]).to_statevector()
+ 
+full_code.draw()
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #8
+By only adjusting the qiskit code in the ERRORS section, determine a way to break this error correcting code (there are many solutions). For reference, there are actually 2 valid ways to break this code:
+
+The qiskit code runs, but the initial and final states do not match.
+The qiskit code itself doesn't run and gives the following output: QiskitError: 'Density matrix is not a pure state'.
+NOTE: If you're curious, the second error is a sign of a change in the quantum state so serious that the qiskit function for creating the statevector effectively fails. In quantum physics, this particular change is called going from a "pure state" to a "mixed state".
+
+1. Combine the encoding and correcting circuits using .compose(...).
+In [ ]:
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #9
+Simulate the Shor code for bit and phase-flip errors that occur 10% of the time.
+
+1. Combine the encoding and correcting circuits using .compose(...).
+The code below introduces bit and phase-flip errors 50% of the time. Change the necesssary line(s) so that these errors only occur 10% of the time.
+
+In [ ]:
+full_code = QuantumCircuit(9)
+
+#==========
+# ENCODING
+#==========
+# Prepare the initial state and save its statevector
+# Prepare in the |0> state
+
+initial_state = Statevector.from_instruction(full_code)
+initial_state = partial_trace(initial_state, [1, 2, 3, 4, 5, 6, 7, 8]).to_statevector()
+
+full_code = full_code.compose(shor_encode, qubits = [0, 1, 2, 3, 4, 5, 6, 7, 8])
+full_code.barrier()
+
+
+#==========
+# ERRORS
+#==========
+
+for i in range(9):
+  if random() < 0.50:
+    full_code.x(i)
+  if random() < 0.50:
+    full_code.z(i)
+
+full_code.barrier()
+
+
+#==========================
+# DETECTION AND CORRECTION
+#==========================
+
+full_code = full_code.compose(shor_correct, qubits = [0, 1, 2, 3, 4, 5, 6, 7, 8])
+
+# Save the final statevector for comparison to the initial one
+final_state = Statevector.from_instruction(full_code)
+final_state = partial_trace(final_state, [1, 2, 3, 4, 5, 6, 7, 8]).to_statevector()
+ 
+full_code.draw()
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Exercise #10
+Adjust the code from Exercise #9 to use the variable provided for the probability of an error instead of hardcoding it in.
+
+1. Combine the encoding and correcting circuits using .compose(...).
+In [ ]:
+probability = 0.10
+
+# COMPLETE THIS CODE
+2. Compare the initial and final statevector.
+There are several ways to do this. We have provided two main ways below: using the equiv(...) function to calculate if they're equal and drawing the Bloch sphere of each for a visual comparison.
+
+In [ ]:
+initial_state.equiv(final_state)
+In [ ]:
+initial_state.draw(output = 'bloch')
+In [ ]:
+final_state.draw(output = 'bloch')
+Part 3: Analzying the Shor Code
+In this section, we will learn how to analyze error correction simulations using a very important measurement in quantum physics: state fidelity. This measures how close two quantum states are to each other on a scale of 0 (completely different) to 1 (the same).
+
+Run the code below to calculate the fidelity between two qubits that are both in the |0\rangle∣0⟩ state (represented in vector notation).
+
+In [ ]:
+state_fidelity([1, 0], [1, 0])
+Exercise #1
+Calculate the state fidelity between the |0\rangle∣0⟩ and |1\rangle∣1⟩ states.
+
+In [ ]:
+state_fidelity(# COMPLETE THIS CODE
+Exercise #2
+Calculate the state fidelity between the |1\rangle∣1⟩ and |0\rangle∣0⟩ states to determine if the order of states matters.
+
+In [ ]:
+state_fidelity(# COMPLETE THIS CODE
+Exercise #3
+Calculate the state fidelity between the |0\rangle∣0⟩ and |+\rangle∣+⟩ states.
+
+NOTE: You may need to consult lessons from earlier in the year or other resources to determine the vector representation of the $|+\rangle state.
+
+In [ ]:
+state_fidelity(# COMPLETE THIS CODE
+Exercise #4
+Calculate the state fidelity between the |0\rangle∣0⟩ and |-\rangle∣−⟩ states.
+
+In [ ]:
+state_fidelity(# COMPLETE THIS CODE
+Exercise #5
+Complete the code below to calculate the state fidelity between the |1\rangle∣1⟩ and |-\rangle∣−⟩ states.
+
+In [ ]:
+qc = QuantumCircuit(1)
+qc.x(0)
+initial_state = Statevector.from_instruction(qc)
+
+# COMPLETE THIS LINE
+final_state = Statevector.from_instruction(qc)
+
+state_fidelity(initial_state, final_state)
+Exercise #6
+Write code to calculate the state fidelity between the |00\rangle∣00⟩ and |\beta_{00}\rangle = \frac{1}{\sqrt 2}(|00\rangle + |11\rangle)∣β 
+00
+​
+ ⟩= 
+2
+​
+ 
+1
+​
+ (∣00⟩+∣11⟩) states.
+
+In [ ]:
+Exercise #7
+Write code to calculate the state fidelity between the initial and final states from Exercise #7 of Part 2. Specifically, copy and paste your solution below and modify it as needed.
+
+Question: Given that these states are from before and after using an error correction scheme, do we want the state fidelity to be 0, 1, or something in between?
+
+In [ ]:
+Exercise #8
+Write code to calculate the state fidelity between the initial and final states from Exercise #10 of Part 2. Specifically, copy and paste your solution below and modify it as needed.
+
+Question: If the probability is increased, what tends to happen to the fidelity? Test this out by altering your solution below as needed.
+
+In [ ]:
+Exercise #9
+Write a function that takes in a paramater, probability, and returns the fidelity before and after running the Shor code with errors that occur with the given probability.
+
+Hint. This will look very similar to Exercise #8.
+
+In [ ]:
+def get_fidelity(probability):
+
+  # COMPLETE THIS CODE
+Exercise #10
+The code provided below graphs the average state fidelity using the Shor code with increasing probability of errors. You will use this to answer several final questions in your project summary.
+
+NOTE: Be patient! This may take up to a minute to run since it is simulating many quantum circuits (technically num_points * num_trials_per_point circuits).
+
+In [ ]:
+num_points = 50
+num_trials_per_point = 100
+average_fidelities_shor = []
+probabilities = [p / num_points for p in range(num_points)]
+
+for probability in probabilities:
+
+  average_fidelity = 0
+  for trial in range(num_trials_per_point):
+    average_fidelity += get_fidelity(probability)
+
+  average_fidelity /= num_trials_per_point
+  
+  average_fidelities_shor  += [average_fidelity]
+
+
+
+plt.figure(figsize = (11, 8))
+plt.scatter(probabilities, average_fidelities_shor, label = 'Shor Code', color = 'orange')
+plt.plot(probabilities, [(1 - p)**2 for p in probabilities], label = 'Without Error Correction', color = 'blue')
+
+
+plt.title("Average Fidelity Using the Shor Code", fontsize = 'x-large')
+plt.xlabel("Probability of an Error", fontsize = 'x-large')
+plt.ylabel("Average Fidelity", fontsize = 'x-large')
+plt.legend()
+plt.show()
+Wrapping Up
+Congratulations! You have implemented and analyzed the Shor code in qiskit -- no small feat. To wrap up, please make sure to write a summary of the concepts covered here, including answers to the following questions:
+
+How does using the Shor code compare to using no error correction? Are there any trends you notice?
+
+When using the Shor code, how does the average fidelity change with increasing probability of errors? Why is this?
+
+Are there any unexpected patterns in the average fidelity? Why do you think they might be happening if so?
+
+End of Lab
+© 2023 The Coding School, All rights reserved
